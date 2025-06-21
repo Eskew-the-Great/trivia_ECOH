@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>ECOH Graduation Quiz 2025 🎓</title>
+<title>ECOH Graduation Quiz 🎓</title>
 <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
 <style>
 body { background: linear-gradient(to right, #ffe29f, #ffa99f); text-align: center; font-family: 'Arial', sans-serif; }
@@ -12,6 +12,8 @@ button { font-size: 28px; padding: 20px 60px; margin: 20px; border-radius: 20px;
 #question { font-size: 45px; color: #333; margin: 40px; }
 li { font-size: 32px; list-style: none; padding: 5px; }
 #correct { font-size: 35px; margin-top: 30px; color: green; }
+#questionNumber { font-size: 36px; color: purple; margin: 20px; }
+#finalScreen { display:none; margin-top: 100px; }
 </style>
 </head>
 <body>
@@ -23,15 +25,22 @@ li { font-size: 32px; list-style: none; padding: 5px; }
 
 <div id="timer"></div>
 <h2 id="question"></h2>
+<div id="questionNumber"></div>
 <div id="correct"></div>
 
 <h2>Leaderboard</h2>
 <ul id="scores"></ul>
 
-<div id="confetti" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;"></div>
+<div id="finalScreen">
+  <h1 style="font-size:60px; color:green;">🎉 Congratulations Class of 2025! 🎓</h1>
+  <h2>🏆 Top 3 Winners</h2>
+  <div id="top3"></div>
+</div>
 
 <script>
 let socket = io();
+let totalQuestions = 20;
+let currentQuestion = 0;
 
 socket.on('waiting', data => {
   document.getElementById('waiting').innerHTML = data.players.map(p => `<li>🎯 ${p}</li>`).join('');
@@ -43,6 +52,8 @@ socket.on('game_start', () => {
 });
 
 socket.on('question', data => {
+  currentQuestion++;
+  document.getElementById('questionNumber').innerText = `Question ${currentQuestion} of ${totalQuestions}`;
   document.getElementById('question').innerText = data.question;
   document.getElementById('correct').innerText = '';
 });
@@ -63,24 +74,26 @@ socket.on('leaderboard', data => {
 });
 
 socket.on('game_over', () => {
-  startConfetti();
+  document.querySelector('h2').style.display='none';
+  document.getElementById('question').style.display='none';
+  document.getElementById('questionNumber').style.display='none';
+  document.getElementById('timer').style.display='none';
+  document.getElementById('correct').style.display='none';
+  document.getElementById('scores').style.display='none';
+  document.getElementById('finalScreen').style.display='block';
+  showTop3();
 });
 
-function startGame() {
-  socket.emit('start_game');
-}
+function startGame() { socket.emit('start_game'); }
 
-function startConfetti() {
-  for (let i = 0; i < 100; i++) {
-    let div = document.createElement('div');
-    div.style.position = 'absolute';
-    div.style.top = Math.random()*100 + 'vh';
-    div.style.left = Math.random()*100 + 'vw';
-    div.style.fontSize = (Math.random()*30+20)+'px';
-    div.style.transform = `rotate(${Math.random()*360}deg)`;
-    div.innerText = '🎉';
-    document.getElementById('confetti').appendChild(div);
-  }
+function showTop3() {
+  fetch('/leaderboard').then(res=>res.json()).then(data=>{
+    let html = data.scores.slice(0,3).map((s,i)=>{
+      let medal = i==0 ? '🏆' : (i==1 ? '🥈' : '🥉');
+      return `<h2>${medal} ${s[0]}: ${s[1]} pts</h2>`;
+    }).join('');
+    document.getElementById('top3').innerHTML = html;
+  });
 }
 </script>
 </body>
