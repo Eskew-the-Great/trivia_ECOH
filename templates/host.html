@@ -1,0 +1,73 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ECOH Graduation Quiz 2025 🎓</title>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+    <style>
+        body { background-color: #f0f8ff; text-align: center; font-family: Arial; }
+        h1 { font-size: 50px; color: darkblue; margin-top: 30px; }
+        button { font-size: 24px; padding: 15px 40px; margin: 20px; }
+        #question { font-size: 40px; margin: 50px; }
+        #timer { font-size: 60px; color: red; }
+        li { font-size: 30px; }
+    </style>
+</head>
+<body>
+    <h1>🎓 ECOH 2025 Graduation Quiz 🎉</h1>
+
+    <h2>Waiting Room</h2>
+    <ul id="waiting"></ul>
+
+    <button onclick="startGame()">Start Game</button>
+
+    <div id="timer"></div>
+    <h2 id="question"></h2>
+    <div id="correct"></div>
+
+    <h2>Leaderboard</h2>
+    <ul id="scores"></ul>
+
+    <script>
+        const socket = io();
+
+        socket.on('waiting', (data) => {
+            let html = '';
+            data.players.forEach(name => {
+                html += `<li>${name}</li>`;
+            });
+            document.getElementById('waiting').innerHTML = html;
+        });
+
+        socket.on('game_start', () => {
+            document.querySelector('button').style.display = 'none';
+            document.getElementById('waiting').innerHTML = '';
+        });
+
+        socket.on('question', (data) => {
+            document.getElementById('question').innerText = data.question;
+            document.getElementById('correct').innerText = '';
+        });
+
+        socket.on('timer', (data) => {
+            document.getElementById('timer').innerText = data.time;
+        });
+
+        socket.on('reveal', (data) => {
+            document.getElementById('correct').innerText = "✅ Correct Answer: " + data.answer;
+        });
+
+        socket.on('leaderboard', (data) => {
+            let scores = '';
+            data.scores.forEach(([name, score]) => {
+                scores += `<li>${name}: ${score}</li>`;
+            });
+            document.getElementById('scores').innerHTML = scores;
+        });
+
+        function startGame() {
+            socket.emit('start_game');
+        }
+    </script>
+</body>
+</html>
