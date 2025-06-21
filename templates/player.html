@@ -1,74 +1,15 @@
 
 <!DOCTYPE html>
 <html>
-<head>
-    <title>Join ECOH Quiz 2025</title>
-    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
-    <style>
-        body { background-color: #fff8f0; text-align: center; font-family: Arial; }
-        h1 { font-size: 40px; color: darkgreen; margin-top: 30px; }
-        button { font-size: 30px; padding: 20px 50px; margin: 20px; width: 80%; max-width: 400px; }
-        #q { font-size: 30px; margin: 40px; }
-        #timer { font-size: 40px; color: red; }
-        #feedback { font-size: 36px; margin-top: 20px; }
-    </style>
-</head>
-<body>
-    <h1>🎓 ECOH Quiz 2025</h1>
-    <input id="name" placeholder="Enter your name" style="font-size: 24px; padding: 10px; width: 80%;"><br>
-    <button onclick="joinGame()">Join</button>
-
-    <div id="timer"></div>
-    <h2 id="q"></h2>
-    <div id="choices"></div>
-    <div id="feedback"></div>
-
-    <script>
-        const socket = io();
-        let playerName = '';
-
-        socket.on('joined', (data) => {
-            alert(data.msg);
-        });
-
-        socket.on('question', (data) => {
-            document.getElementById('q').innerText = data.question;
-            let html = '';
-            data.options.forEach(opt => {
-                html += `<button onclick="answer('${opt}')">${opt}</button><br><br>`;
-            });
-            document.getElementById('choices').innerHTML = html;
-            document.getElementById('feedback').innerText = '';
-        });
-
-        socket.on('timer', (data) => {
-            document.getElementById('timer').innerText = data.time;
-            if (data.time === 0) {
-                document.getElementById('choices').innerHTML = '<p>⏰ Time is up!</p>';
-            }
-        });
-
-        socket.on('acknowledge', (data) => {
-            if (data.correct) {
-                document.getElementById('feedback').innerText = '🎉 Correct!';
-            } else {
-                document.getElementById('feedback').innerText = '❌ Wrong!';
-            }
-            disableButtons();
-        });
-
-        function disableButtons() {
-            document.querySelectorAll('#choices button').forEach(btn => btn.disabled = true);
-        }
-
-        function joinGame() {
-            playerName = document.getElementById('name').value;
-            socket.emit('join', {name: playerName});
-        }
-
-        function answer(choice) {
-            socket.emit('submit_answer', {name: playerName, answer: choice});
-        }
-    </script>
-</body>
-</html>
+<head><title>Player</title><script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script></head>
+<body><h1>Player Screen</h1><input id="name"><button onclick="join()">Join</button>
+<h2 id="q"></h2><div id="choices"></div><div id="timer"></div><div id="feedback"></div>
+<script>
+let socket=io(),player='';
+function join(){player=document.getElementById('name').value;socket.emit('join',{name:player});}
+socket.on('question',data=>{document.getElementById('q').innerText=data.question;
+document.getElementById('choices').innerHTML=data.options.map(opt=>`<button onclick="answer('${opt}')">${opt}</button>`).join('');});
+socket.on('timer',data=>{document.getElementById('timer').innerText=data.time;});
+socket.on('acknowledge',data=>{document.getElementById('feedback').innerText=data.correct?"Correct!":"Wrong!";});
+function answer(opt){socket.emit('submit_answer',{name:player,answer:opt});}
+</script></body></html>
