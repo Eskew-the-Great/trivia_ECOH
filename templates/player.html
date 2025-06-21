@@ -50,6 +50,13 @@ socket.on('acknowledge', data => {
   document.getElementById('feedback').innerText = data.correct ? '🎉 Correct!' : '❌ Wrong!';
   document.querySelectorAll('#choices button').forEach(btn => btn.disabled = true);
 });
+
+socket.on('game_over', () => {
+  document.getElementById('q').innerText = '';
+  document.getElementById('choices').innerHTML = '';
+  document.getElementById('timer').innerText = '';
+  document.getElementById('feedback').innerHTML = '<h2>🎉 Game Over! Thank you for playing! 🎓</h2>';
+});
  
 function answer(opt){ socket.emit('submit_answer',{name:playerName,answer:opt}); }
 </script>
