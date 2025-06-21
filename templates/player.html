@@ -1,15 +1,57 @@
-
 <!DOCTYPE html>
 <html>
-<head><title>Player</title><script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script></head>
-<body><h1>Player Screen</h1><input id="name"><button onclick="join()">Join</button>
-<h2 id="q"></h2><div id="choices"></div><div id="timer"></div><div id="feedback"></div>
+<head>
+<title>Player - Graduation Quiz</title>
+<script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+<style>
+body { background: linear-gradient(to right, #e0f7fa, #ffe0b2); text-align: center; font-family: 'Arial', sans-serif; }
+h1 { font-size: 45px; color: darkgreen; margin-top: 20px; text-shadow: 2px 2px #fff;}
+button { font-size: 28px; padding: 15px 50px; margin: 20px; border-radius: 20px; background: #4caf50; color: white; border: none; }
+#q { font-size: 35px; color: #333; margin: 40px; }
+#timer { font-size: 50px; color: #d50000; margin-top: 20px; }
+#feedback { font-size: 40px; margin: 20px; color: #ff4081; }
+</style>
+</head>
+<body>
+<h1>🎓 Join ECOH Quiz!</h1>
+<input id="name" placeholder="Your Name" style="font-size:24px;padding:10px;width:60%;">
+<button onclick="join()">Join</button>
+
+<div id="timer"></div>
+<h2 id="q"></h2>
+<div id="choices"></div>
+<div id="feedback"></div>
+
 <script>
-let socket=io(),player='';
-function join(){player=document.getElementById('name').value;socket.emit('join',{name:player});}
-socket.on('question',data=>{document.getElementById('q').innerText=data.question;
-document.getElementById('choices').innerHTML=data.options.map(opt=>`<button onclick="answer('${opt}')">${opt}</button>`).join('');});
-socket.on('timer',data=>{document.getElementById('timer').innerText=data.time;});
-socket.on('acknowledge',data=>{document.getElementById('feedback').innerText=data.correct?"Correct!":"Wrong!";});
-function answer(opt){socket.emit('submit_answer',{name:player,answer:opt});}
-</script></body></html>
+let socket = io();
+let playerName = '';
+
+function join() {
+  playerName = document.getElementById('name').value.trim();
+  if (playerName.length > 0) {
+    socket.emit('join', {name: playerName});
+    document.querySelector('input').style.display='none';
+    document.querySelector('button').style.display='none';
+  }
+}
+
+socket.on('question', data => {
+  document.getElementById('q').innerText = data.question;
+  document.getElementById('choices').innerHTML = data.options.map(opt => 
+    `<button onclick="answer('${opt}')">${opt}</button>`).join('<br><br>');
+  document.getElementById('feedback').innerText = '';
+});
+
+socket.on('timer', data => {
+  document.getElementById('timer').innerText = data.time;
+});
+
+socket.on('acknowledge', data => {
+  document.getElementById('feedback').innerText = data.correct ? '🎉 Correct!' : '❌ Wrong!';
+  document.querySelectorAll('#choices button').forEach(btn => btn.disabled = true);
+});
+ 
+function answer(opt){ socket.emit('submit_answer',{name:playerName,answer:opt}); }
+</script>
+</body>
+</html>
